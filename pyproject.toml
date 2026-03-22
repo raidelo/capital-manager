@@ -1,0 +1,15 @@
+[project]
+name = "capital-manager"
+version = "0.1.0"
+description = "Personal capital manager (income & expenses tracking)"
+authors = [{ name = "Raydel Rodríguez Romay", email = "raidelosix@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = ["fastapi", "uvicorn[standard]", "typer"]
+
+[project.scripts]
+capman = "capital_manager.cli.main:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
