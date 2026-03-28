@@ -38,6 +38,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "pydantic" },
     { name = "typer" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -45,6 +46,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi" },
+    { name = "pydantic", specifier = ">=2.12.5" },
     { name = "typer" },
     { name = "uvicorn", extras = ["standard"] },
 ]
