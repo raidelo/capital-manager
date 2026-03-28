@@ -1,8 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 
 from pydantic import BaseModel, Field
+
+from capital_manager.core.time import utc_now
 
 
 class TransactionType(str, Enum):
@@ -23,4 +25,4 @@ class TransactionCreate(TransactionBase):
 class Transaction(TransactionBase):
     id: int
     account_id: int
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=utc_now)
