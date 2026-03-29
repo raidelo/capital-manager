@@ -1,8 +1,11 @@
-from fastapi import FastAPI, HTTPException, status
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException, status
+from sqlalchemy.orm import Session
 
 from capital_manager.core import services
 from capital_manager.core.db.models import Base
-from capital_manager.core.db.session import engine
+from capital_manager.core.db.session import engine, get_db
 from capital_manager.core.models.account import Account, AccountCreate
 from capital_manager.core.models.transaction import Transaction, TransactionCreate
 
@@ -21,16 +24,19 @@ def ping():
 
 
 @app.get("/accounts", response_model=list[Account])
-def list_accounts() -> list[Account]:
+def list_accounts(db: Annotated[Session, Depends(get_db)]) -> list[Account]:
     """List all accounts"""
-    return services.list_accounts()
+    return [Account.model_validate(acc) for acc in services.list_accounts(db)]
 
 
 @app.post("/accounts", response_model=Account, status_code=status.HTTP_201_CREATED)
-def create_account(account: AccountCreate) -> Account:
+def create_account(
+    account: AccountCreate,
+    db: Annotated[Session, Depends(get_db)],
+) -> Account:
     """Create a new account"""
     try:
-        return services.create_account(data=account)
+        return Account.model_validate(services.create_account(data=account, db=db))
     except ValueError as e:
         raise HTTPException(status.HTTP_409_CONFLICT, detail=str(e))
 
@@ -39,17 +45,22 @@ def create_account(account: AccountCreate) -> Account:
 
 
 @app.get("/transactions", response_model=list[Transaction])
-def list_transactions() -> list[Transaction]:
+def list_transactions(db: Annotated[Session, Depends(get_db)]) -> list[Transaction]:
     """List all transactions"""
-    return services.list_transactions()
+    return [Transaction.model_validate(tx) for tx in services.list_transactions(db)]
 
 
 @app.post(
     "/transactions", response_model=Transaction, status_code=status.HTTP_201_CREATED
 )
-def add_transaction(transaction: TransactionCreate) -> Transaction:
+def add_transaction(
+    transaction: TransactionCreate,
+    db: Annotated[Session, Depends(get_db)],
+) -> Transaction:
     """Add a transaction"""
     try:
-        return services.add_transaction(data=transaction)
+        return Transaction.model_validate(
+            services.add_transaction(data=transaction, db=db)
+        )
     except ValueError as e:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(e))

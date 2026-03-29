@@ -5,6 +5,7 @@ import typer
 import uvicorn
 
 from capital_manager.core import services
+from capital_manager.core.db.session import SessionMaker
 from capital_manager.core.models.account import AccountCreate
 from capital_manager.core.models.transaction import TransactionCreate, TransactionType
 
@@ -59,14 +60,15 @@ def cli_init_db():
 @account_app.command("list")
 def cli_list_accounts():
     """List all accounts"""
-    accounts = services.list_accounts()
+    with SessionMaker() as db:
+        accounts = services.list_accounts(db)
 
-    if not accounts:
-        print("No accounts found")
-        raise typer.Exit(code=0)
+        if not accounts:
+            print("No accounts found")
+            raise typer.Exit(code=0)
 
-    for acc in accounts:
-        print(f"{acc.name} ({acc.asset})")
+        for acc in accounts:
+            print(f"{acc.name} ({acc.asset})")
 
 
 @account_app.command("create")
@@ -76,7 +78,10 @@ def cli_create_account(
 ):
     """Create a new account"""
     try:
-        account = services.create_account(data=AccountCreate(name=name, asset=asset))
+        with SessionMaker() as db:
+            account = services.create_account(
+                data=AccountCreate(name=name, asset=asset), db=db
+            )
     except ValueError as e:
         print(f"Error: {e}")
         raise typer.Exit(code=1)
@@ -90,16 +95,17 @@ def cli_create_account(
 @transaction_app.command("list")
 def cli_list_transactions():
     """List all transactions"""
-    txs = services.list_transactions()
+    with SessionMaker() as db:
+        txs = services.list_transactions(db)
 
-    if not txs:
-        print("No transactions found")
-        raise typer.Exit(code=0)
+        if not txs:
+            print("No transactions found")
+            raise typer.Exit(code=0)
 
-    for tx in txs:
-        print(
-            f"[{tx.account_id}] {tx.type.upper()} {tx.amount} - {tx.description or ''}"
-        )
+        for tx in txs:
+            print(
+                f"[{tx.account.name}] {tx.type.upper()} {tx.amount} - {tx.description or ''}"
+            )
 
 
 @transaction_app.command("add")
@@ -121,14 +127,16 @@ def cli_add_transaction(
         raise typer.Exit(code=1)
 
     try:
-        tx = services.add_transaction(
-            data=TransactionCreate(
-                type=type,
-                amount=amount_decimal,
-                description=description,
-                account_name=account,
+        with SessionMaker() as db:
+            tx = services.add_transaction(
+                data=TransactionCreate(
+                    type=type,
+                    amount=amount_decimal,
+                    description=description,
+                    account_name=account,
+                ),
+                db=db,
             )
-        )
     except ValueError as e:
         print(f"Error: {e}")
         raise typer.Exit(code=1)

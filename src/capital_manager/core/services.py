@@ -1,69 +1,81 @@
-from capital_manager.core.models.account import Account, AccountCreate
-from capital_manager.core.models.transaction import Transaction, TransactionCreate
+from typing import Sequence
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from capital_manager.core.db.models import Account, Transaction
+from capital_manager.core.models.account import AccountCreate
+from capital_manager.core.models.transaction import TransactionCreate
 from capital_manager.core.time import utc_now
-
-accounts: list[Account] = []
-transactions: list[Transaction] = []
-
-last_account_id = 1
-last_tx_id = 1
-
 
 # -------- ACCOUNTS --------
 
 
-def create_account(data: AccountCreate) -> Account:
-    if any(acc.name == data.name for acc in accounts):
+def create_account(data: AccountCreate, db: Session) -> Account:
+    existent = db.execute(
+        select(Account).where(Account.name == data.name)
+    ).scalar_one_or_none()
+
+    if existent is not None:
         raise ValueError(f'Account "{data.name}" already exists')
 
-    global last_account_id
     account = Account(
         name=data.name,
         asset=data.asset,
-        id=last_account_id,
         created_at=utc_now(),
     )
-    last_account_id += 1
 
-    accounts.append(account)
+    try:
+        db.add(account)
+        db.commit()
+        db.refresh(account)
+        return account
+    except Exception:
+        db.rollback()
+        raise
+
+
+def get_account_by_name(name: str, db: Session) -> Account:
+    account = db.execute(
+        select(Account).where(Account.name == name)
+    ).scalar_one_or_none()
+
+    if account is None:
+        raise ValueError(f'Account "{name}" not found')
+
     return account
 
 
-def get_account_by_name(name: str) -> Account:
-    for acc in accounts:
-        if acc.name == name:
-            return acc
-
-    raise ValueError(f'Account "{name}" not found')
-
-
-def list_accounts() -> list[Account]:
-    return list(accounts)
+def list_accounts(db: Session) -> Sequence[Account]:
+    return db.execute(select(Account)).scalars().all()
 
 
 # -------- TRANSACTIONS --------
 
 
-def add_transaction(data: TransactionCreate) -> Transaction:
-    account = get_account_by_name(data.account_name)
+def add_transaction(data: TransactionCreate, db: Session) -> Transaction:
+    account = get_account_by_name(data.account_name, db)
 
     if data.amount <= 0:
         raise ValueError("Amount must be greater than 0")
 
-    global last_tx_id
     transaction = Transaction(
+        account_id=account.id,
         type=data.type,
         amount=data.amount,
         description=data.description,
-        id=last_tx_id,
-        account_id=account.id,
         created_at=utc_now(),
     )
-    last_tx_id += 1
 
-    transactions.append(transaction)
-    return transaction
+    try:
+        db.add(transaction)
+        db.commit()
+        db.refresh(transaction)
+        return transaction
+    except Exception:
+        db.rollback()
+        raise
 
 
-def list_transactions() -> list[Transaction]:
-    return list(transactions)
+def list_transactions(db: Session) -> Sequence[Transaction]:
+    return db.execute(select(Transaction)).scalars().all()
