@@ -5,7 +5,13 @@ description = "Personal capital manager (income & expenses tracking)"
 authors = [{ name = "Raydel Rodríguez Romay", email = "raidelosix@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["fastapi", "uvicorn[standard]", "typer", "pydantic>=2.12.5"]
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "typer",
+    "pydantic>=2.12.5",
+    "sqlalchemy>=2.0.48",
+]
 
 [project.scripts]
 capman = "capital_manager.cli.main:app"

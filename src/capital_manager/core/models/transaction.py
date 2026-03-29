@@ -1,18 +1,20 @@
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from capital_manager.core.time import utc_now
 
 
-class TransactionType(str, Enum):
+class TransactionType(StrEnum):
     INCOME = "income"
     EXPENSE = "expense"
 
 
 class TransactionBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     type: TransactionType
     amount: Decimal = Field(gt=0)
     description: str | None = None

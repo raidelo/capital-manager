@@ -1,11 +1,13 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from capital_manager.core.time import utc_now
 
 
 class AccountBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     name: str
     asset: str
 
