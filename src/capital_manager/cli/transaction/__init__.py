@@ -8,7 +8,7 @@ from capital_manager.core import services
 from capital_manager.core.db.session import SessionMaker
 from capital_manager.core.models.transaction import TransactionCreate, TransactionType
 
-app = typer.Typer()
+app = typer.Typer(help="Manage transactions")
 
 
 @app.command("list")

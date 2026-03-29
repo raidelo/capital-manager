@@ -7,7 +7,7 @@ from capital_manager.core import services
 from capital_manager.core.db.session import SessionMaker
 from capital_manager.core.models.account import AccountCreate
 
-app = typer.Typer()
+app = typer.Typer(help="Manage accounts")
 
 
 @app.command("list")
