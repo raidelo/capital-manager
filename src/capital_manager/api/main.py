@@ -1,8 +1,12 @@
 from fastapi import FastAPI, HTTPException, status
 
 from capital_manager.core import services
+from capital_manager.core.db.models import Base
+from capital_manager.core.db.session import engine
 from capital_manager.core.models.account import Account, AccountCreate
 from capital_manager.core.models.transaction import Transaction, TransactionCreate
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="CapitalManager API")
 

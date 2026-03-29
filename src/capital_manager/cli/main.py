@@ -32,6 +32,27 @@ def api(
     )
 
 
+@app.command("init-db")
+def cli_init_db():
+    """Initialize the database tables"""
+    from sqlalchemy import inspect
+
+    from capital_manager.core.db.models import Base
+    from capital_manager.core.db.session import engine
+
+    inspector = inspect(engine)
+
+    tables_exist = any(
+        inspector.has_table(table.name) for table in Base.metadata.sorted_tables
+    )
+
+    if tables_exist:
+        print("Database already initialized.")
+    else:
+        Base.metadata.create_all(bind=engine)
+        print("Database initialized.")
+
+
 # -------- ACCOUNT SUBCOMMANDS --------
 
 
