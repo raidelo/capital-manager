@@ -4,8 +4,11 @@ from typing import Annotated
 import typer
 import uvicorn
 
+from capital_manager.cli.db_utils import ensure_db_initialized
 from capital_manager.core import services
-from capital_manager.core.db.session import SessionMaker
+from capital_manager.core.db.base import Base
+from capital_manager.core.db.session import SessionMaker, engine
+from capital_manager.core.db_utils import is_db_initialized
 from capital_manager.core.models.account import AccountCreate
 from capital_manager.core.models.transaction import TransactionCreate, TransactionType
 
@@ -36,18 +39,7 @@ def api(
 @app.command("init-db")
 def cli_init_db():
     """Initialize the database tables"""
-    from sqlalchemy import inspect
-
-    from capital_manager.core.db.models import Base
-    from capital_manager.core.db.session import engine
-
-    inspector = inspect(engine)
-
-    tables_exist = any(
-        inspector.has_table(table.name) for table in Base.metadata.sorted_tables
-    )
-
-    if tables_exist:
+    if is_db_initialized():
         print("Database already initialized.")
     else:
         Base.metadata.create_all(bind=engine)
@@ -60,6 +52,7 @@ def cli_init_db():
 @account_app.command("list")
 def cli_list_accounts():
     """List all accounts"""
+    ensure_db_initialized()
     with SessionMaker() as db:
         accounts = services.list_accounts(db)
 
@@ -77,6 +70,7 @@ def cli_create_account(
     asset: Annotated[str, typer.Argument()],
 ):
     """Create a new account"""
+    ensure_db_initialized()
     try:
         with SessionMaker() as db:
             account = services.create_account(
@@ -95,6 +89,7 @@ def cli_create_account(
 @transaction_app.command("list")
 def cli_list_transactions():
     """List all transactions"""
+    ensure_db_initialized()
     with SessionMaker() as db:
         txs = services.list_transactions(db)
 
@@ -116,6 +111,7 @@ def cli_add_transaction(
     description: Annotated[str | None, typer.Option(..., "-d", "--description")] = None,
 ):
     """Add a transaction"""
+    ensure_db_initialized()
     try:
         amount_decimal = Decimal(amount)
     except InvalidOperation:
