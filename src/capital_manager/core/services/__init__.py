@@ -1,5 +1,6 @@
 from capital_manager.core.services.accounts import (
     create_account,
+    get_account_by_id,
     get_account_by_name,
     list_accounts,
 )
@@ -11,6 +12,7 @@ from capital_manager.core.services.transactions import (
 
 __all__ = [
     "create_account",
+    "get_account_by_id",
     "get_account_by_name",
     "list_accounts",
     "add_transaction",

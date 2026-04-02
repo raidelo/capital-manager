@@ -32,6 +32,15 @@ def create_account(data: AccountCreate, db: Session) -> Account:
         raise
 
 
+def get_account_by_id(id: int, db: Session) -> Account:
+    account = db.execute(select(Account).where(Account.id == id)).scalar_one_or_none()
+
+    if account is None:
+        raise ValueError(f'Account "{id}" not found')
+
+    return account
+
+
 def get_account_by_name(name: str, db: Session) -> Account:
     account = db.execute(
         select(Account).where(Account.name == name)
