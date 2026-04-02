@@ -42,3 +42,18 @@ def account_create(
         raise typer.Exit(code=1)
 
     print(f"Created account: {account.name} ({account.asset})")
+
+
+@app.command("balance")
+def account_balance(name: Annotated[str, typer.Argument()]):
+    """Show the current balance of an account"""
+    ensure_db_initialized()
+    try:
+        with SessionMaker() as db:
+            account = services.get_account_by_name(name, db)
+            balance = services.get_balance(account, db)
+    except ValueError as e:
+        print(f"Error: {e}")
+        raise typer.Exit(code=1)
+
+    print(f"💰 Balance for '{account.name}': {balance:.2f} {account.asset}")
