@@ -5,7 +5,11 @@ from sqlalchemy.orm import Session
 
 from capital_manager.core import services
 from capital_manager.core.db.session import get_db
-from capital_manager.core.models.account import Account, AccountCreate
+from capital_manager.core.models.account import (
+    Account,
+    AccountBalanceResponse,
+    AccountCreate,
+)
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -26,3 +30,62 @@ def create_account(
         return Account.model_validate(services.create_account(data=account, db=db))
     except ValueError as e:
         raise HTTPException(status.HTTP_409_CONFLICT, detail=str(e))
+
+
+@router.get("/balance", response_model=AccountBalanceResponse)
+def get_account_balance(
+    db: Annotated[Session, Depends(get_db)],
+    account_id: int | None = None,
+    account_name: str | None = None,
+) -> AccountBalanceResponse:
+    """Show the current balance of an account"""
+    if account_name == "":
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="Must provide a non-empty string for account_name",
+        )
+
+    match (account_id, account_name):
+        case (None, None):
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                detail="Must provide account_id or account_name",
+            )
+
+        case (account_id, None):
+            try:
+                account = services.get_account_by_id(account_id, db)
+            except ValueError as e:
+                raise HTTPException(status.HTTP_404_NOT_FOUND, detail=str(e))
+
+        case (None, account_name):
+            try:
+                account = services.get_account_by_name(account_name, db)
+            except ValueError as e:
+                raise HTTPException(status.HTTP_404_NOT_FOUND, detail=str(e))
+
+        case (account_id, account_name):
+            try:
+                account_by_id = services.get_account_by_id(account_id, db)
+            except ValueError:
+                account_by_id = None
+
+            try:
+                account_by_name = services.get_account_by_name(account_name, db)
+            except ValueError:
+                account_by_name = None
+
+            if (
+                account_by_id is None
+                or account_by_name is None
+                or account_by_id.id != account_by_name.id
+            ):
+                raise HTTPException(
+                    status.HTTP_404_NOT_FOUND,
+                    detail=f'Account with id: {account_id} and name: "{account_name}" not found',
+                )
+
+            account = account_by_id
+
+    balance = services.get_balance(account, db)
+    return AccountBalanceResponse(balance=balance, asset=account.asset)

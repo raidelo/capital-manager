@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,3 +20,8 @@ class AccountCreate(AccountBase):
 class Account(AccountBase):
     id: int
     created_at: datetime = Field(default_factory=utc_now)
+
+
+class AccountBalanceResponse(BaseModel):
+    balance: Decimal
+    asset: str
