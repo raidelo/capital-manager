@@ -77,26 +77,29 @@ http://127.0.0.1:8000/docs
 
 #### Endpoints
 
-| Method | Path            | Description              |
-| ------ | --------------- | ------------------------ |
-| `GET`  | `/ping`         | Health check             |
-| `GET`  | `/accounts`     | List all accounts        |
-| `POST` | `/accounts`     | Create a new account     |
-| `GET`  | `/transactions` | List all transactions    |
-| `POST` | `/transactions` | Create a new transaction |
+| Method | Path                | Description                                                                    |
+| ------ | ------------------- | ------------------------------------------------------------------------------ |
+| `GET`  | `/ping`             | Health check                                                                   |
+| `GET`  | `/accounts`         | List all accounts                                                              |
+| `POST` | `/accounts`         | Create a new account                                                           |
+| `GET`  | `/accounts/balance` | Get balance of an account (`account_id` and/or `account_name` as query params) |
+| `GET`  | `/transactions`     | List all transactions                                                          |
+| `POST` | `/transactions`     | Create a new transaction                                                       |
 
 ### CLI
 
 #### `capman account`
 
-| Subcommand | Arguments      | Description          |
-| ---------- | -------------- | -------------------- |
-| `list`     | —              | List all accounts    |
-| `create`   | `NAME` `ASSET` | Create a new account |
+| Subcommand | Arguments      | Description                            |
+| ---------- | -------------- | -------------------------------------- |
+| `list`     | —              | List all accounts                      |
+| `create`   | `NAME` `ASSET` | Create a new account                   |
+| `balance`  | `NAME`         | Show the current balance of an account |
 
 ```bash
 capman account list
 capman account create "My Wallet" USD
+capman account balance "My Wallet"
 ```
 
 #### `capman transaction`
