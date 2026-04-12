@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Sequence
 
 from rich.box import ROUNDED
@@ -10,6 +11,7 @@ from capital_manager.core.models.transaction import TransactionType
 DCYAN = "#8be9fd"
 DGREEN = "#50fa7b"
 DRED = "#ff5555"
+DYELLOW = "#f1fa8c"
 
 TITLE_STYLE = f"{DCYAN} bold"
 DATETIME_FORMAT = "%F %T"
@@ -72,6 +74,35 @@ def transaction_list_table(seq: Sequence[Transaction]) -> Table:
             amount,
             tx.description or "\u2014",
             tx.created_at.strftime(DATETIME_FORMAT),
+        )
+
+    return t
+
+
+def build_balances_table(seq: list[tuple[Account, Decimal]], title: str) -> Table:
+    t = Table(
+        Column("ID", justify="right"),
+        Column("Name"),
+        Column("Balance"),
+        Column("Asset"),
+        Column("Created at"),
+        box=ROUNDED,
+        border_style="bold",
+        title=title,
+        title_style=TITLE_STYLE,
+    )
+
+    for acc, bal in seq:
+        color = DRED if bal < 0 else DGREEN
+
+        balance = f"[{color}]{bal:.2f}[/{color}]"
+
+        t.add_row(
+            str(acc.id),
+            acc.name,
+            balance,
+            acc.asset,
+            acc.created_at.strftime(DATETIME_FORMAT),
         )
 
     return t
