@@ -59,10 +59,9 @@ def account_balance(name: Annotated[str | None, typer.Argument()] = None):
     try:
         with SessionMaker() as db:
             if name is None:
-                balances = [
-                    (acc, services.get_balance(acc, db))
-                    for acc in services.list_accounts(db)
-                ]
+                accounts = services.list_accounts(db)
+                balances = services.get_balances(accounts, db)
+
                 title = "Account Balances"
             else:
                 account = services.get_account_by_name(name, db)
