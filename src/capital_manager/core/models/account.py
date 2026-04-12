@@ -23,5 +23,5 @@ class Account(AccountBase):
 
 
 class AccountBalanceResponse(BaseModel):
+    account: Account
     balance: Decimal
-    asset: str

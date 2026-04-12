@@ -88,4 +88,6 @@ def get_account_balance(
             account = account_by_id
 
     balance = services.get_balance(account, db)
-    return AccountBalanceResponse(balance=balance, asset=account.asset)
+    return AccountBalanceResponse(
+        account=Account.model_validate(account), balance=balance
+    )
