@@ -3,6 +3,7 @@ from typing import Annotated
 import typer
 
 from capital_manager.cli.db_utils import ensure_db_initialized
+from capital_manager.cli.utils import account_list_table, get_console
 from capital_manager.core import services
 from capital_manager.core.db.session import SessionMaker
 from capital_manager.core.models.account import AccountCreate
@@ -21,8 +22,10 @@ def account_list():
             print("No accounts found")
             raise typer.Exit(code=0)
 
-        for acc in accounts:
-            print(f"{acc.name} ({acc.asset})")
+        table = account_list_table(accounts)
+
+        console = get_console()
+        console.print(table)
 
 
 @app.command("create")
