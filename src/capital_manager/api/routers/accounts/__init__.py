@@ -32,12 +32,14 @@ def create_account(
         raise HTTPException(status.HTTP_409_CONFLICT, detail=str(e))
 
 
-@router.get("/balance", response_model=AccountBalanceResponse)
+@router.get(
+    "/balance", response_model=AccountBalanceResponse | list[AccountBalanceResponse]
+)
 def get_account_balance(
     db: Annotated[Session, Depends(get_db)],
     account_id: int | None = None,
     account_name: str | None = None,
-) -> AccountBalanceResponse:
+) -> AccountBalanceResponse | list[AccountBalanceResponse]:
     """Show the current balance of an account"""
     if account_name == "":
         raise HTTPException(
@@ -47,10 +49,12 @@ def get_account_balance(
 
     match (account_id, account_name):
         case (None, None):
-            raise HTTPException(
-                status.HTTP_400_BAD_REQUEST,
-                detail="Must provide account_id or account_name",
-            )
+            accounts = services.list_accounts(db)
+            balances = services.get_balances(accounts, db)
+            return [
+                AccountBalanceResponse(account=Account.model_validate(acc), balance=bal)
+                for acc, bal in balances
+            ]
 
         case (account_id, None):
             try:

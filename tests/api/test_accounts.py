@@ -4,6 +4,7 @@ from typing import Any
 from fastapi.testclient import TestClient
 
 from capital_manager.core.db.models import Account, Transaction
+from capital_manager.core.models.account import Account as PDAccount
 from tests.utils import calculate_balance_from_transactions, missing_data_details
 
 
@@ -102,15 +103,27 @@ def test_accounts_balance_all_cases(
     balance = calculate_balance_from_transactions(
         account_to_get_balance_from, transactions
     )
+    balances = [
+        (acc, calculate_balance_from_transactions(acc, transactions))
+        for acc in accounts
+    ]
 
     empty_account_name_response = {
         "detail": "Must provide a non-empty string for account_name"
     }
-    empty_query_response = {"detail": "Must provide account_id or account_name"}
     desired_response = {
+        "account": PDAccount.model_validate(account_to_get_balance_from).model_dump(
+            mode="json"
+        ),
         "balance": str(balance),
-        "asset": account_to_get_balance_from.asset,
     }
+    desired_multiple_response = [
+        {
+            "account": PDAccount.model_validate(acc).model_dump(mode="json"),
+            "balance": str(bal),
+        }
+        for acc, bal in balances
+    ]
 
     existent_id = str(account_to_get_balance_from.id)
     existent_name = account_to_get_balance_from.name
@@ -204,8 +217,8 @@ def test_accounts_balance_all_cases(
         ),
         (
             {},
-            400,
-            empty_query_response,
+            200,
+            desired_multiple_response,
         ),
     ]
 
