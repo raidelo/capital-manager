@@ -1,6 +1,6 @@
 [project]
 name = "capital-manager"
-version = "0.2.0"
+version = "0.3.0"
 description = "Personal capital manager (income & expenses tracking)"
 authors = [{ name = "Raydel Rodríguez Romay", email = "raidelosix@gmail.com" }]
 readme = "README.md"
