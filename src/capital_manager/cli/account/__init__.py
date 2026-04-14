@@ -3,6 +3,12 @@ from typing import Annotated
 import typer
 
 from capital_manager.cli.db_utils import ensure_db_initialized
+from capital_manager.cli.utils import (
+    DYELLOW,
+    account_list_table,
+    build_balances_table,
+    get_console,
+)
 from capital_manager.core import services
 from capital_manager.core.db.session import SessionMaker
 from capital_manager.core.models.account import AccountCreate
@@ -21,8 +27,10 @@ def account_list():
             print("No accounts found")
             raise typer.Exit(code=0)
 
-        for acc in accounts:
-            print(f"{acc.name} ({acc.asset})")
+        table = account_list_table(accounts)
+
+        console = get_console()
+        console.print(table)
 
 
 @app.command("create")
@@ -45,15 +53,27 @@ def account_create(
 
 
 @app.command("balance")
-def account_balance(name: Annotated[str, typer.Argument()]):
+def account_balance(name: Annotated[str | None, typer.Argument()] = None):
     """Show the current balance of an account"""
     ensure_db_initialized()
     try:
         with SessionMaker() as db:
-            account = services.get_account_by_name(name, db)
-            balance = services.get_balance(account, db)
+            if name is None:
+                accounts = services.list_accounts(db)
+                balances = services.get_balances(accounts, db)
+
+                title = "Account Balances"
+            else:
+                account = services.get_account_by_name(name, db)
+                balance = services.get_balance(account, db)
+                balances = [(account, balance)]
+                title = f"Balance: [bold {DYELLOW}]{account.name}[/bold {DYELLOW}]"
+
+            table = build_balances_table(balances, title)
+
+            console = get_console()
+            console.print(table)
+
     except ValueError as e:
         print(f"Error: {e}")
         raise typer.Exit(code=1)
-
-    print(f"💰 Balance for '{account.name}': {balance:.2f} {account.asset}")

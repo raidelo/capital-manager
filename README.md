@@ -31,6 +31,7 @@
 | ORM / database  | [SQLAlchemy 2](https://docs.sqlalchemy.org/) |
 | Build backend   | [Hatchling](https://hatch.pypa.io/)          |
 | Package manager | [uv](https://docs.astral.sh/uv/)             |
+| Testing         | [pytest](https://docs.pytest.org/)           |
 
 ## Requirements
 
@@ -77,28 +78,29 @@ http://127.0.0.1:8000/docs
 
 #### Endpoints
 
-| Method | Path                | Description                                                                    |
-| ------ | ------------------- | ------------------------------------------------------------------------------ |
-| `GET`  | `/ping`             | Health check                                                                   |
-| `GET`  | `/accounts`         | List all accounts                                                              |
-| `POST` | `/accounts`         | Create a new account                                                           |
-| `GET`  | `/accounts/balance` | Get balance of an account (`account_id` and/or `account_name` as query params) |
-| `GET`  | `/transactions`     | List all transactions                                                          |
-| `POST` | `/transactions`     | Create a new transaction                                                       |
+| Method | Path                | Description                                                                                      |
+| ------ | ------------------- | ------------------------------------------------------------------------------------------------ |
+| `GET`  | `/ping`             | Health check                                                                                     |
+| `GET`  | `/accounts`         | List all accounts                                                                                |
+| `POST` | `/accounts`         | Create a new account                                                                             |
+| `GET`  | `/accounts/balance` | Get balance of one or all accounts (`account_id` and/or `account_name` as optional query params) |
+| `GET`  | `/transactions`     | List all transactions                                                                            |
+| `POST` | `/transactions`     | Create a new transaction                                                                         |
 
 ### CLI
 
 #### `capman account`
 
-| Subcommand | Arguments      | Description                            |
-| ---------- | -------------- | -------------------------------------- |
-| `list`     | —              | List all accounts                      |
-| `create`   | `NAME` `ASSET` | Create a new account                   |
-| `balance`  | `NAME`         | Show the current balance of an account |
+| Subcommand | Arguments      | Description                                              |
+| ---------- | -------------- | -------------------------------------------------------- |
+| `list`     | —              | List all accounts                                        |
+| `create`   | `NAME` `ASSET` | Create a new account                                     |
+| `balance`  | `[NAME]`       | Show balance of a specific account, or all if none given |
 
 ```bash
 capman account list
 capman account create "My Wallet" USD
+capman account balance            # lists all accounts with their balances
 capman account balance "My Wallet"
 ```
 
@@ -127,6 +129,7 @@ capital-manager/
 │   └── capital_manager/       # Main package
 │       ├── api/               # FastAPI application and routers
 │       └── cli/               # Typer CLI entrypoint
+├── tests/                     # pytest test suite
 ├── pyproject.toml             # Project metadata and dependencies
 ├── uv.lock                    # Locked dependency versions
 └── README.md
@@ -134,10 +137,11 @@ capital-manager/
 
 ## Development
 
-Install the project in editable mode to work on it locally:
+Install dev dependencies and run the test suite:
 
 ```bash
-uv pip install -e .
+uv sync --dev
+uv run pytest
 ```
 
 Any changes to the source files under `src/` are reflected immediately without reinstalling.

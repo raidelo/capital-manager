@@ -4,6 +4,7 @@ from typing import Annotated
 import typer
 
 from capital_manager.cli.db_utils import ensure_db_initialized
+from capital_manager.cli.utils import get_console, transaction_list_table
 from capital_manager.core import services
 from capital_manager.core.db.session import SessionMaker
 from capital_manager.core.models.transaction import TransactionCreate, TransactionType
@@ -22,10 +23,10 @@ def transaction_list():
             print("No transactions found")
             raise typer.Exit(code=0)
 
-        for tx in txs:
-            print(
-                f"[{tx.account.name}] {tx.type.upper()} {tx.amount} - {tx.description or ''}"
-            )
+        table = transaction_list_table(txs)
+
+        console = get_console()
+        console.print(table)
 
 
 @app.command("add")
