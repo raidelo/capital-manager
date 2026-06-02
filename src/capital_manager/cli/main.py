@@ -7,6 +7,7 @@ from capital_manager.core.db_utils import is_db_initialized
 
 from .account import app as account_app
 from .transaction import app as transaction_app
+from .tui import app as textual_tui
 
 app = typer.Typer()
 
@@ -37,6 +38,11 @@ def cli_init_db():
     else:
         Base.metadata.create_all(bind=engine)
         print("Database initialized.")
+
+
+@app.command()
+def tui():
+    textual_tui()
 
 
 if __name__ == "__main__":
